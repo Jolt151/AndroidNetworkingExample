@@ -16,6 +16,13 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
+    private val retrofit = Retrofit.Builder()
+        .baseUrl("https://jsonplaceholder.typicode.com")
+        .addConverterFactory(MoshiConverterFactory.create())
+        .build()
+    private val dataApi = retrofit.create(DataService::class.java)
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -23,27 +30,28 @@ class MainActivity : AppCompatActivity() {
         recyclerview.layoutManager = LinearLayoutManager(this)
         recyclerview.adapter = UsersAdapter(listOf())
 
+
         GlobalScope.launch {
             val users = getUsers()
             info(users)
             updateUI(users ?: listOf())
+
+            val single = getSingleUser("1")
+            info(single)
         }
     }
 
 
 
     suspend fun getUsers(): List<User>? = withContext(Dispatchers.IO) {
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://jsonplaceholder.typicode.com")
-            .addConverterFactory(MoshiConverterFactory.create())
-            .build()
-
-        val dataApi = retrofit.create(DataService::class.java)
-
         dataApi.getUsers().execute().body()
     }
 
     suspend fun updateUI(users: List<User>) = withContext(Dispatchers.Main) {
         recyclerview.adapter = UsersAdapter(users)
+    }
+
+    suspend fun getSingleUser(id: String): User? = withContext(Dispatchers.IO) {
+        dataApi.getUser(id).execute().body()
     }
 }
