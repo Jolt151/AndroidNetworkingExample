@@ -1,5 +1,6 @@
 package com.betterfilter.networking.service
 
+import com.betterfilter.networking.model.Post
 import com.betterfilter.networking.model.User
 import retrofit2.Call
 import retrofit2.http.GET
@@ -13,5 +14,5 @@ interface DataService {
     fun getUser(@Path("id") id: String): Call<User>
 
     @GET("/posts")
-    fun getPosts()
+    fun getPosts(): Call<List<Post>>
 }

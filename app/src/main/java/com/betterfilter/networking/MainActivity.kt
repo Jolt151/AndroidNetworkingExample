@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.betterfilter.networking.extensions.debug
 import com.betterfilter.networking.extensions.enqueue
 import com.betterfilter.networking.extensions.info
+import com.betterfilter.networking.model.Post
 import com.betterfilter.networking.model.User
 import com.betterfilter.networking.service.DataService
 import com.squareup.moshi.Moshi
@@ -38,6 +39,9 @@ class MainActivity : AppCompatActivity() {
 
             val single = getSingleUser("1")
             info(single)
+
+            val posts = getPosts()
+            info(posts)
         }
     }
 
@@ -53,5 +57,9 @@ class MainActivity : AppCompatActivity() {
 
     suspend fun getSingleUser(id: String): User? = withContext(Dispatchers.IO) {
         dataApi.getUser(id).execute().body()
+    }
+
+    suspend fun getPosts(): List<Post>? = withContext(Dispatchers.IO) {
+        dataApi.getPosts().execute().body()
     }
 }
