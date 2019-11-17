@@ -3,13 +3,12 @@ package com.betterfilter.networking
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.betterfilter.networking.extensions.debug
-import com.betterfilter.networking.extensions.enqueue
+import androidx.room.Room
 import com.betterfilter.networking.extensions.info
 import com.betterfilter.networking.model.Post
 import com.betterfilter.networking.model.User
+import com.betterfilter.networking.service.AppDatabase
 import com.betterfilter.networking.service.DataService
-import com.squareup.moshi.Moshi
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import retrofit2.Retrofit
@@ -23,6 +22,7 @@ class MainActivity : AppCompatActivity() {
         .build()
     private val dataApi = retrofit.create(DataService::class.java)
 
+    lateinit var db: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +31,18 @@ class MainActivity : AppCompatActivity() {
         recyclerview.layoutManager = LinearLayoutManager(this)
         recyclerview.adapter = UsersAdapter(listOf())
 
+        db = Room.databaseBuilder(this, AppDatabase::class.java, "userDB").build()
+
+
+
 
         GlobalScope.launch {
+            info("we didnt get any new data yet.")
+            info("loading persisted data from room...")
+            info(getPersistedUsers())
+
             val users = getUsers()
+            persistUsers(users)
             info(users)
             updateUI(users ?: listOf())
 
@@ -61,5 +70,15 @@ class MainActivity : AppCompatActivity() {
 
     suspend fun getPosts(): List<Post>? = withContext(Dispatchers.IO) {
         dataApi.getPosts().execute().body()
+    }
+
+    suspend fun persistUsers(users: List<User>?) = withContext(Dispatchers.IO) {
+        users?.let {
+            db.userDao().insertAll(users)
+        }
+    }
+
+    suspend fun getPersistedUsers(): List<User> = withContext(Dispatchers.IO) {
+        db.userDao().getAll()
     }
 }
